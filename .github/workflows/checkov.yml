@@ -1,0 +1,32 @@
+name: Checkov Scan
+
+on:
+  pull_request:
+    paths:
+      - "tf/**"
+      - ".github/workflows/checkov.yml"
+  workflow_dispatch:
+
+jobs:
+  checkov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Checkov
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: github_actions
+          output_format: cli,json
+          output_file_path: console,checkov-results.json
+          soft_fail: false
+
+      - name: Upload Checkov JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-results
+          path: checkov-results.json
+          retention-days: 14
