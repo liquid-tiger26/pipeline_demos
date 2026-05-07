@@ -27,7 +27,7 @@ jobs:
           pip install langgraph pyyaml
 
       - name: Run scan
-        run: python scan_workflows.py
+        run: python scripts/scan_workflows.py
 
       - name: Upload scan results
         uses: actions/upload-artifact@v4
