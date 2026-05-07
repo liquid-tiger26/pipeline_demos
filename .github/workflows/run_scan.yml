@@ -1,9 +1,19 @@
 name: Scan workflows
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      repo_path:
+        description: Path to repo to scan
+        required: false
+        default: "."
+      report_path:
+        description: Output JSON path
+        required: false
+        default: "output/scan-results.json"
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -11,6 +21,10 @@ permissions:
 jobs:
   scan:
     runs-on: ubuntu-latest
+
+    env:
+      REPO_PATH: ${{ inputs.repo_path || '.' }}
+      REPORT_PATH: ${{ inputs.report_path || 'output/scan-results.json' }}
 
     steps:
       - name: Checkout repository
@@ -24,13 +38,19 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install langgraph pyyaml
+          pip install langgraph pyyaml requests
 
       - name: Run scan
         run: python scripts/scan_workflows.py
+
+      - name: Show output files
+        run: |
+          pwd
+          ls -R
 
       - name: Upload scan results
         uses: actions/upload-artifact@v4
         with:
           name: scan-results
-          path: output/scan-results.json
+          path: ${{ env.REPORT_PATH }}
+          if-no-files-found: error
